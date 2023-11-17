@@ -1,6 +1,6 @@
 {
   "name": "httpsecureapi_v2",
-  "version": "1.0.10",
+  "version": "1.0.12",
   "description": "Httpsecureapi est une class TypeScript/JavaScript pour gérer les requêtes réseau dans des applications web comme mobile. Elle offre une flexibilité maximale avec la possibilité de spécifier une URL de base, des en-têtes personnalisés, et une clé secrète pour l'encryptage des données. Cette classe prend en charge les méthodes GET, POST, PUT, et DELETE et intègre des intercepteurs pour la manipulation des requêtes avant l'envoi et après la réponse du serveur. Elle peut également crypter les données avant de les envoyer au serveur et décrypter les réponses pour assurer une communication sécurisée.",
   "main": "dist/httpsecureapi.min.js",
   "scripts": {

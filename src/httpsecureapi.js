@@ -7,6 +7,11 @@ class Httpsecureapi {
         this._baseUrl = baseUrl;
         this._headers = headers;
         this._encryptionKey = encryptionKey;
+        this._interceptors = {
+            request: [],
+            response: [],
+            error: [],
+        };
     }
 
     async get(url, options = {}) {
@@ -37,13 +42,22 @@ class Httpsecureapi {
             headers: mergedHeaders,
         };
 
+        // Apply request interceptors
+        await this.applyInterceptors('request', mergedOptions);
+
         const protocol = this._baseUrl.startsWith('https') ? https : http;
 
         try {
             if (mergedOptions.body && typeof mergedOptions.body === 'object') {
-                const encryptedBody = this.encryptData(JSON.stringify(mergedOptions.body));
-                mergedOptions.headers['Content-Length'] = Buffer.byteLength(encryptedBody);
-                mergedOptions.body = encryptedBody;
+                if (this._encryptionKey) {
+                    // Chiffrer les données uniquement si une clé de chiffrement est fournie
+                    const encryptedBody = this.encryptData(JSON.stringify(mergedOptions.body));
+                    mergedOptions.headers['Content-Length'] = Buffer.byteLength(encryptedBody);
+                    mergedOptions.body = encryptedBody;
+                } else {
+                    // Laisser les données comme elles sont si aucune clé de chiffrement n'est fournie
+                    mergedOptions.body = JSON.stringify(mergedOptions.body);
+                }
             }
 
             return new Promise((resolve, reject) => {
@@ -58,7 +72,9 @@ class Httpsecureapi {
                         try {
                             // Vérifier si les données sont chiffrées avant de tenter de les décrypter
                             const decryptedData = this.isEncrypted(data) ? this.decryptData(data) : JSON.parse(data);
-                            resolve(decryptedData);
+                            const response = { data: decryptedData, headers: res.headers };
+                            // Apply response interceptors
+                            this.applyInterceptors('response', response).then(resolve).catch(reject);
                         } catch (error) {
                             reject(error);
                         }
@@ -66,7 +82,8 @@ class Httpsecureapi {
                 });
 
                 req.on('error', (error) => {
-                    reject(error);
+                    // Apply error interceptors
+                    this.applyInterceptors('error', error).then(reject).catch(reject);
                 });
 
                 if (mergedOptions.body) {
@@ -99,6 +116,27 @@ class Httpsecureapi {
     isEncrypted(data) {
         // Vérifier si les données commencent par le préfixe d'encodage
         return data.startsWith('ENC:');
+    }
+
+    addInterceptor(interceptor) {
+        // Add an interceptor for a specific event (request, response, error)
+        // Example: { request: (config) => { /* modify request config */ return config; }, response: (response) => { /* modify response */ return response; }, error: (error) => { /* handle error */ throw error; } }
+        this._interceptors.request.push(interceptor.request);
+        this._interceptors.response.push(interceptor.response);
+        this._interceptors.error.push(interceptor.error);
+    }
+
+    async applyInterceptors(event, data) {
+        // Apply all interceptors for a specific event
+        const interceptors = this._interceptors[event];
+        for (const interceptor of interceptors) {
+            try {
+                data = await interceptor(data);
+            } catch (error) {
+                throw error;
+            }
+        }
+        return data;
     }
 }
 
