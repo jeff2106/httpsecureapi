@@ -31,8 +31,12 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
         step((generator = generator.apply(thisArg, _arguments || [])).next());
     });
 };
+var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
+};
 Object.defineProperty(exports, "__esModule", { value: true });
 const crypto = __importStar(require("crypto"));
+const node_fetch_1 = __importDefault(require("node-fetch"));
 class Httpsecureapi {
     constructor(baseUrl, headers = {}, encryptionKey) {
         this._baseUrl = baseUrl;
@@ -69,7 +73,7 @@ class Httpsecureapi {
                     const encryptedBody = this.encryptData(JSON.stringify(mergedOptions.body));
                     mergedOptions.body = encryptedBody;
                 }
-                const response = yield fetch(`${this._baseUrl}${url}`, mergedOptions);
+                const response = yield (0, node_fetch_1.default)(`${this._baseUrl}${url}`, mergedOptions);
                 // Décryptage des données
                 const data = yield response.json();
                 const decryptedData = this.decryptData(data);
@@ -99,4 +103,4 @@ class Httpsecureapi {
         return JSON.parse(decryptedData);
     }
 }
-exports.default = Httpsecureapi;
+module.exports = Httpsecureapi;

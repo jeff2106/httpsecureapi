@@ -1,6 +1,6 @@
 {
-  "name": "httpsecureapi",
-  "version": "1.0.0",
+  "name": "httpsecureapi_v2",
+  "version": "1.0.5",
   "description": "Description de votre package",
   "main": "src/httpsecureapi.js",
   "scripts": {
@@ -24,8 +24,10 @@
   },
   "homepage": "https://github.com/jeff2106/httpsecureapi.git#readme",
   "dependencies": {
-    "crypto-js": "^3.1.9-1"
+    "crypto-js": "^3.1.9-1",
+    "node-fetch": "^3.3.2"
   },
+  "type": "module",
   "devDependencies": {
     "@types/crypto-js": "^4.2.1",
     "@types/node": "^20.9.1"

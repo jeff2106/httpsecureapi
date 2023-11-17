@@ -1,4 +1,5 @@
 import * as crypto from 'crypto';
+import fetch from 'node-fetch';
 
 interface MergedOptions extends RequestInit {
     method: string;
@@ -55,7 +56,7 @@ class Httpsecureapi {
             const response = await fetch(`${this._baseUrl}${url}`, mergedOptions);
 
             // Décryptage des données
-            const data = await response.json();
+            const data : any = await response.json();
             const decryptedData = this.decryptData(data);
             return decryptedData;
         } catch (error) {
