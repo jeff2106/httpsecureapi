@@ -1,12 +1,12 @@
 {
   "name": "httpsecureapi_v2",
-  "version": "1.0.5",
+  "version": "1.0.7",
   "description": "Description de votre package",
-  "main": "src/httpsecureapi.js",
+  "main": "src/httpsecureapi2.js",
   "scripts": {
     "build": "tsc",
     "test": "echo \"Error: no test specified\" && exit 1",
-    "start": "node dist/index.js"
+    "start": "node try.js"
   },
   "repository": {
     "type": "git",
@@ -27,7 +27,7 @@
     "crypto-js": "^3.1.9-1",
     "node-fetch": "^3.3.2"
   },
-  "type": "module",
+  "type": "commonjs",
   "devDependencies": {
     "@types/crypto-js": "^4.2.1",
     "@types/node": "^20.9.1"
