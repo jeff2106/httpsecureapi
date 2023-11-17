@@ -84,4 +84,4 @@ class Httpsecureapi {
     }
 }
 
-export default Httpsecureapi;
+module.exports = Httpsecureapi;
