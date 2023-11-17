@@ -1,37 +1,45 @@
-const https = require('https');
-const http = require('http');
-const crypto = require('crypto');
+import https from 'https';
+import http from 'http';
+import crypto from 'crypto';
+
+interface RequestOptions extends http.RequestOptions {
+    body?: any;
+}
 
 class Httpsecureapi {
-    constructor(baseUrl, headers = {}, encryptionKey) {
+    private _baseUrl: string;
+    private _headers: Record<string, string>;
+    private _encryptionKey: string;
+
+    constructor(baseUrl: string, headers: Record<string, string> = {}, encryptionKey: string) {
         this._baseUrl = baseUrl;
         this._headers = headers;
         this._encryptionKey = encryptionKey;
     }
 
-    async get(url, options = {}) {
+    async get(url: string, options: RequestOptions = {}) {
         return this.request('GET', url, options);
     }
 
-    async post(url, options = {}) {
+    async post(url: string, options: RequestOptions = {}) {
         return this.request('POST', url, options);
     }
 
-    async put(url, options = {}) {
+    async put(url: string, options: RequestOptions = {}) {
         return this.request('PUT', url, options);
     }
 
-    async delete(url, options = {}) {
+    async delete(url: string, options: RequestOptions = {}) {
         return this.request('DELETE', url, options);
     }
 
-    async request(method, url, options = {}) {
+    private async request(method: string, url: string, options: RequestOptions = {}) {
         const mergedHeaders = {
             ...this._headers,
             ...options.headers,
         };
 
-        const mergedOptions = {
+        const mergedOptions: RequestOptions = {
             ...options,
             method,
             headers: mergedHeaders,
@@ -42,11 +50,11 @@ class Httpsecureapi {
         try {
             if (mergedOptions.body && typeof mergedOptions.body === 'object') {
                 const encryptedBody = this.encryptData(JSON.stringify(mergedOptions.body));
-                mergedOptions.headers['Content-Length'] = Buffer.byteLength(encryptedBody);
+                mergedOptions.headers['Content-Length'] = Buffer.byteLength(encryptedBody).toString();
                 mergedOptions.body = encryptedBody;
             }
 
-            return new Promise((resolve, reject) => {
+            return new Promise<any>((resolve, reject) => {
                 const req = protocol.request(`${this._baseUrl}${url}`, mergedOptions, (res) => {
                     let data = '';
 
@@ -77,29 +85,29 @@ class Httpsecureapi {
             });
         } catch (error) {
             return {
-                error
+                error,
             };
         }
     }
 
-    encryptData(data) {
-        const cipher = crypto.createCipheriv('aes-256-cbc', this._encryptionKey);
+    private encryptData(data: string): string {
+        const cipher = crypto.createCipheriv('aes-256-cbc', this._encryptionKey, Buffer.alloc(16, 0));
         let encryptedData = cipher.update(data, 'utf-8', 'hex');
         encryptedData += cipher.final('hex');
         return encryptedData;
     }
 
-    decryptData(data) {
+    private decryptData(data: string): any {
         const decipher = crypto.createDecipheriv('aes-256-cbc', this._encryptionKey, Buffer.alloc(16, 0));
         let decryptedData = decipher.update(data, 'hex', 'utf-8');
         decryptedData += decipher.final('utf-8');
         return JSON.parse(decryptedData);
     }
 
-    isEncrypted(data) {
+    private isEncrypted(data: string): boolean {
         // Vérifier si les données commencent par le préfixe d'encodage
         return data.startsWith('ENC:');
     }
 }
 
-module.exports = Httpsecureapi;
+export default Httpsecureapi;
