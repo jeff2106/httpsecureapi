@@ -1,4 +1,11 @@
-const crypto = require('crypto-js')
+import * as crypto from 'crypto';
+
+interface MergedOptions extends RequestInit {
+    method: string;
+    headers: any;
+    body?: any;
+}
+
 class Httpsecureapi {
     private _baseUrl: string;
     private _headers: Record<string, string>;
@@ -32,7 +39,7 @@ class Httpsecureapi {
             ...options.headers,
         };
 
-        const mergedOptions = {
+        const mergedOptions: MergedOptions = {
             ...options,
             method,
             headers: mergedHeaders,
