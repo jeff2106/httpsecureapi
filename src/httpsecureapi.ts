@@ -1,6 +1,5 @@
-import crypto from 'crypto-js';
-
-class CustomFetch {
+const crypto = require('crypto-js')
+class Httpsecureapi {
     private _baseUrl: string;
     private _headers: Record<string, string>;
     private _encryptionKey: string; // Clé secrète pour l'encryptage des données
@@ -78,4 +77,4 @@ class CustomFetch {
     }
 }
 
-export default CustomFetch;
+export default Httpsecureapi;
