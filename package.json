@@ -1,0 +1,27 @@
+{
+  "name": "httpsecureapi",
+  "version": "1.0.0",
+  "description": "Description de votre package",
+  "main": "src/httpsecureapi.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/jeff2106/httpsecureapi.git"
+  },
+  "keywords": [
+    "fetch",
+    "http",
+    "secure"
+  ],
+  "author": "Votre Nom",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/jeff2106/httpsecureapi.git/issues"
+  },
+  "homepage": "https://github.com/jeff2106/httpsecureapi.git#readme",
+  "dependencies": {
+    "crypto-js": "^3.1.9-1"
+  }
+}
