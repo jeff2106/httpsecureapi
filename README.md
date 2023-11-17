@@ -61,8 +61,6 @@ http.delete(url)
 ```bash
 const http = new Httpsecureapi(apiUrl, customHeaders, encryptionKey);
 
-//Ajouter un en-tête d'autorisation à toutes les requêtes
-
 http.addInterceptor({
     request: (config) => {
         config.headers['Authorization'] = 'Bearer your-access-token';
@@ -70,7 +68,6 @@ http.addInterceptor({
     },
 });
 
-// Manipuler les données de la réponse
 http.addInterceptor({
     response: (response) => {
         // Convertir le format de la date
@@ -81,7 +78,6 @@ http.addInterceptor({
     },
 });
 
-// Gérer les erreurs de requête
 http.addInterceptor({
     error: (error) => {
         // Gérer les erreurs spécifiques
@@ -105,7 +101,7 @@ http.addInterceptor({
 - `get(url, options)`: Effectue une requête GET.
 - `post(url, options)`: Effectue une requête POST.
 - `put(url, options)`: Effectue une requête PUT.
-- `delete(url, options)`: Effectue une requête DELETE.
+- `addInterceptor`: Pour l'intercepteur.
 
 ## Utilisation du chiffrement des données
 
