@@ -1,106 +1,105 @@
-"use strict";
-var __createBinding = (this && this.__createBinding) || (Object.create ? (function(o, m, k, k2) {
-    if (k2 === undefined) k2 = k;
-    var desc = Object.getOwnPropertyDescriptor(m, k);
-    if (!desc || ("get" in desc ? !m.__esModule : desc.writable || desc.configurable)) {
-      desc = { enumerable: true, get: function() { return m[k]; } };
-    }
-    Object.defineProperty(o, k2, desc);
-}) : (function(o, m, k, k2) {
-    if (k2 === undefined) k2 = k;
-    o[k2] = m[k];
-}));
-var __setModuleDefault = (this && this.__setModuleDefault) || (Object.create ? (function(o, v) {
-    Object.defineProperty(o, "default", { enumerable: true, value: v });
-}) : function(o, v) {
-    o["default"] = v;
-});
-var __importStar = (this && this.__importStar) || function (mod) {
-    if (mod && mod.__esModule) return mod;
-    var result = {};
-    if (mod != null) for (var k in mod) if (k !== "default" && Object.prototype.hasOwnProperty.call(mod, k)) __createBinding(result, mod, k);
-    __setModuleDefault(result, mod);
-    return result;
-};
-var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
-    function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
-    return new (P || (P = Promise))(function (resolve, reject) {
-        function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
-        function rejected(value) { try { step(generator["throw"](value)); } catch (e) { reject(e); } }
-        function step(result) { result.done ? resolve(result.value) : adopt(result.value).then(fulfilled, rejected); }
-        step((generator = generator.apply(thisArg, _arguments || [])).next());
-    });
-};
-var __importDefault = (this && this.__importDefault) || function (mod) {
-    return (mod && mod.__esModule) ? mod : { "default": mod };
-};
-Object.defineProperty(exports, "__esModule", { value: true });
-const crypto = __importStar(require("crypto"));
-const node_fetch_1 = __importDefault(require("node-fetch"));
+const https = require('https');
+const http = require('http');
+const crypto = require('crypto');
+
 class Httpsecureapi {
     constructor(baseUrl, headers = {}, encryptionKey) {
         this._baseUrl = baseUrl;
         this._headers = headers;
         this._encryptionKey = encryptionKey;
     }
-    get(url, options = {}) {
-        return __awaiter(this, void 0, void 0, function* () {
-            return this.request('GET', url, options);
-        });
+
+    async get(url, options = {}) {
+        return this.request('GET', url, options);
     }
-    post(url, options = {}) {
-        return __awaiter(this, void 0, void 0, function* () {
-            return this.request('POST', url, options);
-        });
+
+    async post(url, options = {}) {
+        return this.request('POST', url, options);
     }
-    put(url, options = {}) {
-        return __awaiter(this, void 0, void 0, function* () {
-            return this.request('PUT', url, options);
-        });
+
+    async put(url, options = {}) {
+        return this.request('PUT', url, options);
     }
-    delete(url, options = {}) {
-        return __awaiter(this, void 0, void 0, function* () {
-            return this.request('DELETE', url, options);
-        });
+
+    async delete(url, options = {}) {
+        return this.request('DELETE', url, options);
     }
-    request(method, url, options = {}) {
-        return __awaiter(this, void 0, void 0, function* () {
-            const mergedHeaders = Object.assign(Object.assign({}, this._headers), options.headers);
-            const mergedOptions = Object.assign(Object.assign({}, options), { method, headers: mergedHeaders });
-            try {
-                // Encryptage des données
-                if (mergedOptions.body && typeof mergedOptions.body === 'object') {
-                    const encryptedBody = this.encryptData(JSON.stringify(mergedOptions.body));
-                    mergedOptions.body = encryptedBody;
+
+    async request(method, url, options = {}) {
+        const mergedHeaders = {
+            ...this._headers,
+            ...options.headers,
+        };
+
+        const mergedOptions = {
+            ...options,
+            method,
+            headers: mergedHeaders,
+        };
+
+        const protocol = this._baseUrl.startsWith('https') ? https : http;
+
+        try {
+            if (mergedOptions.body && typeof mergedOptions.body === 'object') {
+                const encryptedBody = this.encryptData(JSON.stringify(mergedOptions.body));
+                mergedOptions.headers['Content-Length'] = Buffer.byteLength(encryptedBody);
+                mergedOptions.body = encryptedBody;
+            }
+
+            return new Promise((resolve, reject) => {
+                const req = protocol.request(`${this._baseUrl}${url}`, mergedOptions, (res) => {
+                    let data = '';
+
+                    res.on('data', (chunk) => {
+                        data += chunk;
+                    });
+
+                    res.on('end', () => {
+                        try {
+                            // Vérifier si les données sont chiffrées avant de tenter de les décrypter
+                            const decryptedData = this.isEncrypted(data) ? this.decryptData(data) : JSON.parse(data);
+                            resolve(decryptedData);
+                        } catch (error) {
+                            reject(error);
+                        }
+                    });
+                });
+
+                req.on('error', (error) => {
+                    reject(error);
+                });
+
+                if (mergedOptions.body) {
+                    req.write(mergedOptions.body);
                 }
-                const response = yield (0, node_fetch_1.default)(`${this._baseUrl}${url}`, mergedOptions);
-                // Décryptage des données
-                const data = yield response.json();
-                const decryptedData = this.decryptData(data);
-                return decryptedData;
-            }
-            catch (error) {
-                return {
-                    error
-                };
-            }
-        });
+
+                req.end();
+            });
+        } catch (error) {
+            return {
+                error
+            };
+        }
     }
+
     encryptData(data) {
-        // Utiliser une bibliothèque de chiffrement comme 'crypto' pour encrypter les données avec la clé secrète
-        // Ceci est un exemple basique et vous devriez utiliser une bibliothèque de chiffrement bien établie dans un projet réel
-        const cipher = crypto.createCipher('aes-256-cbc', this._encryptionKey);
+        const cipher = crypto.createCipheriv('aes-256-cbc', this._encryptionKey);
         let encryptedData = cipher.update(data, 'utf-8', 'hex');
         encryptedData += cipher.final('hex');
         return encryptedData;
     }
+
     decryptData(data) {
-        // Utiliser une bibliothèque de chiffrement comme 'crypto' pour décrypter les données avec la clé secrète
-        // Ceci est un exemple basique et vous devriez utiliser une bibliothèque de chiffrement bien établie dans un projet réel
-        const decipher = crypto.createDecipher('aes-256-cbc', this._encryptionKey);
+        const decipher = crypto.createDecipheriv('aes-256-cbc', this._encryptionKey, Buffer.alloc(16, 0));
         let decryptedData = decipher.update(data, 'hex', 'utf-8');
         decryptedData += decipher.final('utf-8');
         return JSON.parse(decryptedData);
     }
+
+    isEncrypted(data) {
+        // Vérifier si les données commencent par le préfixe d'encodage
+        return data.startsWith('ENC:');
+    }
 }
+
 module.exports = Httpsecureapi;
